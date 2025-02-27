@@ -1,0 +1,809 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Kalkulator Resistansi Konduktor ICEA</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --bg-color-light: #f5f7fa;
+        --bg-gradient-light: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+        --container-bg-light: rgba(255, 255, 255, 0.95);
+        --text-color-light: #333;
+      }
+      :root.dark {
+        --bg-color-light: #121212;
+        --bg-gradient-light: linear-gradient(135deg, #121212 0%, #1e1e1e 100%);
+        --container-bg-light: #1f1f1f;
+        --text-color-light: #e0e0e0;
+      }
+      body {
+        background: var(--bg-gradient-light);
+        min-height: 100vh;
+        padding: 20px;
+        color: var(--text-color-light);
+        transition: background 0.3s ease, color 0.3s ease;
+      }
+      .protected-container {
+        max-width: 1100px;
+        margin: 20px auto;
+        background-color: var(--container-bg-light);
+        border-radius: 10px;
+        box-shadow: 0 8px 32px rgba(31, 38, 135, 0.15);
+        padding: 20px;
+      }
+      .main-container {
+      }
+      .user-header {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        margin-bottom: 20px;
+      }
+      .logo-container img {
+        width: 250px;
+        height: 63px;
+      }
+      .user-info-header {
+        font-size: 1rem;
+        margin-left: auto;
+        text-align: right;
+      }
+      .header-main {
+        background: linear-gradient(45deg, #1a237e, #283593);
+        color: #fff;
+        padding: 20px;
+        border-radius: 10px;
+        text-align: center;
+        margin-bottom: 20px;
+      }
+      .form-control,
+      .form-select {
+        border-radius: 10px;
+        border: 1px solid #e0e0e0;
+        padding: 12px;
+        transition: all 0.3s ease;
+      }
+      .form-control:focus,
+      .form-select:focus {
+        box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.25);
+        border-color: #0d6efd;
+      }
+      .hasil-container {
+        background: var(--container-bg-light);
+        border-radius: 15px;
+        padding: 20px;
+        margin-top: 40px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+      }
+      .hasil-text {
+        font-size: 1.5rem;
+        font-weight: bold;
+      }
+      .social-buttons {
+        margin-top: 30px;
+        display: flex;
+        justify-content: center;
+        flex-wrap: wrap;
+        gap: 10px;
+      }
+      .social-buttons .btn {
+        min-width: 150px;
+      }
+      .copyright {
+        text-align: center;
+        font-size: 1rem;
+        margin-top: 20px;
+        padding-top: 10px;
+        border-top: 1px solid #eee;
+      }
+      .footer-toggle {
+        text-align: center;
+        margin-top: 10px;
+      }
+      @media print {
+        .social-buttons,
+        .footer-toggle {
+          display: none !important;
+        }
+        html,
+        body {
+          width: 100%;
+          height: auto;
+          margin: 0;
+          padding: 0;
+        }
+        .protected-container,
+        .main-container {
+          box-shadow: none;
+          page-break-inside: avoid;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Calculator Content -->
+    <div class="protected-container">
+      <div class="main-container">
+        <div class="user-header">
+          <div class="logo-container">
+            <img src="logo.png" alt="Logo" />
+          </div>
+          <div class="user-info-header">
+            <div id="currentDateTime"></div>
+            <div id="greetingMessage"></div>
+          </div>
+        </div>
+        <div class="header-main">
+          <h2>
+            <i class="fas fa-calculator"></i> Kalkulator Resistansi Konduktor
+            ICEA
+          </h2>
+        </div>
+        <!-- Calculator Form -->
+        <div>
+          <!-- Row for Pembacaan Alat and Panjang (Feet) -->
+          <div class="row">
+            <div class="col-md-6 mb-4">
+              <label for="pembacaanAlat" class="form-label">
+                <i class="fas fa-tachometer-alt"></i> Pembacaan Alat (mΩ)
+              </label>
+              <input
+                type="text"
+                class="form-control"
+                id="pembacaanAlat"
+                placeholder="Masukkan pembacaan nilai pada alat"
+                oninput="hitungHasil()"
+                style="font-style: italic"
+              />
+            </div>
+            <div class="col-md-6 mb-4">
+              <label for="panjangFeet" class="form-label">
+                <i class="fas fa-ruler-horizontal"></i> Panjang (Feet)
+              </label>
+              <input
+                type="number"
+                class="form-control"
+                id="panjangFeet"
+                placeholder="Masukkan panjang dalam Feet"
+                oninput="syncFeetToMeter(); hitungHasil()"
+                style="font-style: italic"
+              />
+            </div>
+          </div>
+          <!-- Row for Suhu and Faktor Koreksi -->
+          <div class="row">
+            <div class="col-md-6 mb-4">
+              <label for="suhu" class="form-label">
+                <i class="fas fa-temperature-high"></i> Suhu (°C)
+              </label>
+              <input
+                type="number"
+                step="0.1"
+                class="form-control"
+                id="suhu"
+                placeholder="Suhu saat pengujian"
+                oninput="updateFaktorKoreksi()"
+                style="font-style: italic"
+              />
+            </div>
+            <div class="col-md-6 mb-4">
+              <label for="faktorKoreksi" class="form-label">
+                <i class="fas fa-balance-scale"></i> Faktor Koreksi Suhu
+              </label>
+              <input
+                type="text"
+                class="form-control"
+                id="faktorKoreksi"
+                readonly
+              />
+            </div>
+          </div>
+          <!-- Row for Bahan Konduktor, Luas Penampang & Spesifikasi Konduktor -->
+          <div class="row">
+            <div class="col-md-4 mb-4">
+              <label for="bahanKonduktor" class="form-label">
+                <i class="fas fa-atom"></i> Bahan Konduktor
+              </label>
+              <select
+                class="form-select"
+                id="bahanKonduktor"
+                onchange="updateLuasPenampangOptions(); updateFaktorKoreksi()"
+              >
+                <option value="CU">Tembaga (CU)</option>
+                <option value="AL">Aluminium (AL)</option>
+              </select>
+            </div>
+            <div class="col-md-4 mb-4">
+              <label for="luasPenampang" class="form-label">
+                <i class="fas fa-vector-square"></i> Luas Penampang (mm²)
+              </label>
+              <select
+                class="form-select"
+                id="luasPenampang"
+                onchange="updateFaktorKoreksi(); updateSpesifikasiKonduktor()"
+              >
+                <option value="8">8</option>
+                <option value="7">7</option>
+                <option value="6">6</option>
+                <option value="5">5</option>
+                <option value="4">4</option>
+                <option value="3">3</option>
+                <option value="2">2</option>
+                <option value="1">1</option>
+                <option value="1/0">1/0</option>
+                <option value="2/0">2/0</option>
+                <option value="3/0">3/0</option>
+                <option value="4/0">4/0</option>
+                <option value="250">250</option>
+                <option value="300">300</option>
+                <option value="350">350</option>
+                <option value="400">400</option>
+                <option value="450">450</option>
+                <option value="500">500</option>
+                <option value="550">550</option>
+                <option value="600">600</option>
+                <option value="650">650</option>
+                <option value="700">700</option>
+                <option value="750">750</option>
+                <option value="800">800</option>
+                <option value="900">900</option>
+                <option value="1000">1000</option>
+                <option value="1100">1100</option>
+                <option value="1200">1200</option>
+                <option value="1250">1250</option>
+                <option value="1300">1300</option>
+                <option value="1400">1400</option>
+                <option value="1500">1500</option>
+                <option value="1600">1600</option>
+                <option value="1700">1700</option>
+                <option value="1750">1750</option>
+              </select>
+            </div>
+            <div class="col-md-4 mb-4">
+              <label for="spesifikasiKonduktor" class="form-label">
+                <i class="fas fa-info-circle"></i> Spesifikasi Konduktor
+              </label>
+              <input
+                type="text"
+                class="form-control"
+                id="spesifikasiKonduktor"
+                readonly
+              />
+            </div>
+          </div>
+          <!-- New Feature: Konversi Panjang Meter ke Feet (Input Dua Arah) -->
+          <div class="row">
+            <div class="col-md-6 mb-4">
+              <label for="meterInput" class="form-label">
+                <i class="fas fa-ruler-vertical"></i> Panjang (Meter)
+              </label>
+              <input
+                type="number"
+                class="form-control"
+                id="meterInput"
+                placeholder="Masukkan panjang dalam Meter"
+                oninput="syncMeterToFeet(); hitungHasil()"
+                style="font-style: italic"
+              />
+            </div>
+            <div class="col-md-6 mb-4">
+              <label for="feetInput" class="form-label">
+                <i class="fas fa-ruler-horizontal"></i> Panjang (Feet)
+              </label>
+              <input
+                type="number"
+                class="form-control"
+                id="feetInput"
+                placeholder="Masukkan panjang dalam Feet"
+                oninput="syncFeetToMeter(); hitungHasil()"
+                style="font-style: italic"
+              />
+            </div>
+          </div>
+          <div class="hasil-container text-center">
+            <h5 id="hasilStatus" class="hasil-text">Hasil:</h5>
+            <h5 id="statusPengujian" class="hasil-text"></h5>
+          </div>
+          <div class="social-buttons">
+            <a href="https://www.youtube.com" class="btn btn-danger">
+              <i class="fas fa-book"></i> Spec. IEC & SPLN
+            </a>
+            <a href="https://www.google.com" class="btn btn-primary">
+              <i class="fas fa-file-alt"></i> Spec. ICEA
+            </a>
+            <a href="#" class="btn btn-success">
+              <i class="fas fa-file-contract"></i> Spec. AS/NZS
+            </a>
+            <a href="#" class="btn btn-info">
+              <i class="fas fa-layer-group"></i> Instrument
+            </a>
+            <button onclick="window.print()" class="btn btn-secondary">
+              <i class="fas fa-print"></i> Cetak Halaman
+            </button>
+          </div>
+          <div class="copyright">
+            <div>Copyright © 2025 Williyanto Adi</div>
+            <div>Version 2.1.7</div>
+          </div>
+          <div class="footer-toggle">
+            <div class="form-check form-switch d-inline-block">
+              <input
+                class="form-check-input"
+                type="checkbox"
+                id="toggleSwitch"
+              />
+              <label
+                class="form-check-label"
+                for="toggleSwitch"
+                id="toggleSwitchLabel"
+              ></label>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <script>
+      const METER_TO_FEET = 3.28084;
+
+      // Synchronize Meter to Feet conversion
+      function syncMeterToFeet() {
+        const meterInput = document.getElementById("meterInput");
+        const feetInput = document.getElementById("feetInput");
+        const meterValue = parseFloat(meterInput.value);
+        if (!isNaN(meterValue)) {
+          feetInput.value = (meterValue * METER_TO_FEET).toFixed(2);
+        } else {
+          feetInput.value = "";
+        }
+      }
+
+      // Synchronize Feet to Meter conversion
+      function syncFeetToMeter() {
+        const feetInput = document.getElementById("feetInput");
+        const meterInput = document.getElementById("meterInput");
+        const feetValue = parseFloat(feetInput.value);
+        if (!isNaN(feetValue)) {
+          meterInput.value = (feetValue / METER_TO_FEET).toFixed(2);
+        } else {
+          meterInput.value = "";
+        }
+      }
+
+      // Update current time and greeting using format: hh:mm:ss - dd/mm/yyyy
+      function updateDateTime() {
+        const now = new Date();
+        const hours = String(now.getHours()).padStart(2, "0");
+        const minutes = String(now.getMinutes()).padStart(2, "0");
+        const seconds = String(now.getSeconds()).padStart(2, "0");
+        const day = String(now.getDate()).padStart(2, "0");
+        const month = String(now.getMonth() + 1).padStart(2, "0");
+        const year = now.getFullYear();
+        document.getElementById(
+          "currentDateTime"
+        ).textContent = `${hours}:${minutes}:${seconds} - ${day}/${month}/${year}`;
+
+        let greeting, icon;
+        const hr = now.getHours();
+        if (hr < 10) {
+          greeting = "Selamat Pagi";
+          icon = '<i class="fas fa-sun"></i>';
+        } else if (hr < 14) {
+          greeting = "Selamat Siang";
+          icon = '<i class="fas fa-sun"></i>';
+        } else if (hr < 18) {
+          greeting = "Selamat Sore";
+          icon = '<i class="fas fa-cloud-sun"></i>';
+        } else {
+          greeting = "Selamat Malam";
+          icon = '<i class="fas fa-moon-stars"></i>';
+        }
+        document.getElementById(
+          "greetingMessage"
+        ).innerHTML = `${icon} ${greeting}, <strong>Williyanto Adi Sumantri</strong>`;
+      }
+      setInterval(updateDateTime, 1000);
+      updateDateTime();
+
+      // Update Luas Penampang options
+      function updateLuasPenampangOptions() {
+        const select = document.getElementById("luasPenampang");
+        let options = "";
+        options += '<option value="8">8</option>';
+        options += '<option value="7">7</option>';
+        options += '<option value="6">6</option>';
+        options += '<option value="5">5</option>';
+        options += '<option value="4">4</option>';
+        options += '<option value="3">3</option>';
+        options += '<option value="2">2</option>';
+        options += '<option value="1">1</option>';
+        options += '<option value="1/0">1/0</option>';
+        options += '<option value="2/0">2/0</option>';
+        options += '<option value="3/0">3/0</option>';
+        options += '<option value="4/0">4/0</option>';
+        options += '<option value="250">250</option>';
+        options += '<option value="300">300</option>';
+        options += '<option value="350">350</option>';
+        options += '<option value="400">400</option>';
+        options += '<option value="450">450</option>';
+        options += '<option value="500">500</option>';
+        options += '<option value="550">550</option>';
+        options += '<option value="600">600</option>';
+        options += '<option value="650">650</option>';
+        options += '<option value="700">700</option>';
+        options += '<option value="750">750</option>';
+        options += '<option value="800">800</option>';
+        options += '<option value="900">900</option>';
+        options += '<option value="1000">1000</option>';
+        options += '<option value="1100">1100</option>';
+        options += '<option value="1200">1200</option>';
+        options += '<option value="1250">1250</option>';
+        options += '<option value="1300">1300</option>';
+        options += '<option value="1400">1400</option>';
+        options += '<option value="1500">1500</option>';
+        options += '<option value="1600">1600</option>';
+        options += '<option value="1700">1700</option>';
+        options += '<option value="1750">1750</option>';
+        select.innerHTML = options;
+      }
+
+      // Update Faktor Koreksi Suhu based on Bahan Konduktor dan Suhu
+      function updateFaktorKoreksi() {
+        const suhu = parseFloat(document.getElementById("suhu").value);
+        const faktorKoreksiInput = document.getElementById("faktorKoreksi");
+        const bahanKonduktor = document.getElementById("bahanKonduktor").value;
+
+        if (bahanKonduktor === "CU") {
+          const temp = parseFloat(suhu.toFixed(1));
+          const mapping = {
+            0: 1.107,
+            1: 1.102,
+            2: 1.098,
+            3: 1.093,
+            4: 1.089,
+            5: 1.084,
+            6: 1.079,
+            7: 1.075,
+            8: 1.07,
+            9: 1.066,
+            10: 1.061,
+            11: 1.057,
+            12: 1.053,
+            13: 1.048,
+            14: 1.044,
+            15: 1.04,
+            16: 1.036,
+            17: 1.032,
+            18: 1.028,
+            19: 1.024,
+            20: 1.02,
+            21: 1.016,
+            22: 1.012,
+            23: 1.008,
+            24: 1.004,
+            25: 1.0,
+            26: 0.996,
+            27: 0.992,
+            28: 0.987,
+            29: 0.985,
+            30: 0.981,
+            31: 0.977,
+            32: 0.974,
+            33: 0.97,
+            34: 0.967,
+            35: 0.963,
+            36: 0.959,
+            37: 0.956,
+            38: 0.952,
+            39: 0.948,
+            40: 0.944,
+          };
+
+          faktorKoreksiInput.value =
+            mapping[temp] !== undefined ? mapping[temp].toFixed(4) : "";
+        } else if (bahanKonduktor === "AL") {
+          const temp = parseFloat(suhu.toFixed(1));
+          const mapping = {
+            0: 1.11,
+            1: 1.105,
+            2: 1.1,
+            3: 1.095,
+            4: 1.09,
+            5: 1.085,
+            6: 1.081,
+            7: 1.076,
+            8: 1.072,
+            9: 1.067,
+            10: 1.063,
+            11: 1.059,
+            12: 1.054,
+            13: 1.05,
+            14: 1.045,
+            15: 1.041,
+            16: 1.037,
+            17: 1.033,
+            18: 1.028,
+            19: 1.024,
+            20: 1.02,
+            21: 1.016,
+            22: 1.012,
+            23: 1.018,
+            24: 1.014,
+            25: 1.0,
+            26: 0.996,
+            27: 0.992,
+            28: 0.989,
+            29: 0.985,
+            30: 0.981,
+            31: 0.977,
+            32: 0.973,
+            33: 0.97,
+            34: 0.966,
+            35: 0.962,
+            36: 0.955,
+            37: 0.947,
+            38: 0.94,
+            39: 0.932,
+            40: 0.944,
+          };
+          faktorKoreksiInput.value =
+            mapping[temp] !== undefined ? mapping[temp].toFixed(4) : "";
+        } else {
+          faktorKoreksiInput.value = "";
+        }
+        updateSpesifikasiKonduktor();
+        hitungHasil();
+      }
+
+      // Update Spesifikasi Konduktor based on Bahan Konduktor dan Luas Penampang
+      function updateSpesifikasiKonduktor() {
+        const bahanKonduktor = document.getElementById("bahanKonduktor").value;
+        const luasPenampang = document.getElementById("luasPenampang").value;
+        const spesifikasiKonduktorInput = document.getElementById(
+          "spesifikasiKonduktor"
+        );
+
+        let result = "";
+        if (
+          bahanKonduktor === "CU" &&
+          {
+            8: 0.66504,
+            7: 0.52938,
+            6: 0.41922,
+            5: 0.3315,
+            4: 0.26316,
+            3: 0.2091,
+            2: 0.16524,
+            1: 0.13158,
+            "1/0": 0.10404,
+            "2/0": 0.08262,
+            "3/0": 0.06548,
+            "4/0": 0.05202,
+            250: 0.04396,
+            300: 0.03672,
+            350: 0.03142,
+            400: 0.02744,
+            450: 0.02448,
+            500: 0.02203,
+            550: 0.01999,
+            600: 0.01836,
+            650: 0.01693,
+            700: 0.01571,
+            750: 0.01469,
+            800: 0.01377,
+            900: 0.01224,
+            1000: 0.01102,
+            1100: 0.01001,
+            1200: 0.00917,
+            1250: 0.0088,
+            1300: 0.00847,
+            1400: 0.00786,
+            1500: 0.00733,
+            1600: 0.00687,
+            1700: 0.00647,
+            1750: 0.00628,
+          }[luasPenampang] !== undefined
+        ) {
+          result = {
+            8: 0.66504,
+            7: 0.52938,
+            6: 0.41922,
+            5: 0.3315,
+            4: 0.26316,
+            3: 0.2091,
+            2: 0.16524,
+            1: 0.13158,
+            "1/0": 0.10404,
+            "2/0": 0.08262,
+            "3/0": 0.06548,
+            "4/0": 0.05202,
+            250: 0.04396,
+            300: 0.03672,
+            350: 0.03142,
+            400: 0.02744,
+            450: 0.02448,
+            500: 0.02203,
+            550: 0.01999,
+            600: 0.01836,
+            650: 0.01693,
+            700: 0.01571,
+            750: 0.01469,
+            800: 0.01377,
+            900: 0.01224,
+            1000: 0.01102,
+            1100: 0.01001,
+            1200: 0.00917,
+            1250: 0.0088,
+            1300: 0.00847,
+            1400: 0.00786,
+            1500: 0.00733,
+            1600: 0.00687,
+            1700: 0.00647,
+            1750: 0.00628,
+          }[luasPenampang];
+        } else if (
+          bahanKonduktor === "AL" &&
+          {
+            8: 1.0914,
+            7: 0.868,
+            6: 0.6885,
+            5: 0.5447,
+            4: 0.4325,
+            3: 0.3427,
+            2: 0.2713,
+            1: 0.2152,
+            "1/0": 0.1714,
+            "2/0": 0.1357,
+            "3/0": 0.1071,
+            "4/0": 0.0853,
+            250: 0.0721,
+            300: 0.0602,
+            350: 0.0515,
+            400: 0.0451,
+            450: 0.0401,
+            500: 0.0361,
+            550: 0.0327,
+            600: 0.0301,
+            650: 0.0277,
+            700: 0.0258,
+            750: 0.0241,
+            800: 0.0225,
+            900: 0.02,
+            1000: 0.0181,
+            1100: 0.0164,
+            1200: 0.015,
+            1250: 0.0144,
+            1300: 0.0139,
+            1400: 0.0129,
+            1500: 0.012,
+            1600: 0.0113,
+            1700: 0.0106,
+            1750: 0.0103,
+          }[luasPenampang] !== undefined
+        ) {
+          let val = {
+            8: 1.0914,
+            7: 0.868,
+            6: 0.6885,
+            5: 0.5447,
+            4: 0.4325,
+            3: 0.3427,
+            2: 0.2713,
+            1: 0.2152,
+            "1/0": 0.1714,
+            "2/0": 0.1357,
+            "3/0": 0.1071,
+            "4/0": 0.0853,
+            250: 0.0721,
+            300: 0.0602,
+            350: 0.0515,
+            400: 0.0451,
+            450: 0.0401,
+            500: 0.0361,
+            550: 0.0327,
+            600: 0.0301,
+            650: 0.0277,
+            700: 0.0258,
+            750: 0.0241,
+            800: 0.0225,
+            900: 0.02,
+            1000: 0.0181,
+            1100: 0.0164,
+            1200: 0.015,
+            1250: 0.0144,
+            1300: 0.0139,
+            1400: 0.0129,
+            1500: 0.012,
+            1600: 0.0113,
+            1700: 0.0106,
+            1750: 0.0103,
+          }[luasPenampang];
+          luasPenampang;
+          result = val < 1 ? val.toFixed(3) : val;
+        }
+        if (result === "") {
+          spesifikasiKonduktorInput.value = "Tidak ada spesifikasi";
+          spesifikasiKonduktorInput.style.fontStyle = "italic";
+          spesifikasiKonduktorInput.style.color = "blue";
+        } else {
+          spesifikasiKonduktorInput.value = result;
+          spesifikasiKonduktorInput.style.fontStyle = "";
+          spesifikasiKonduktorInput.style.color = "";
+        }
+        hitungHasil();
+      }
+
+      // Calculate result based on input values
+      function hitungHasil() {
+        const pembacaanAlat = parseFloat(
+          document.getElementById("pembacaanAlat").value
+        );
+        const panjang = parseFloat(
+          document.getElementById("panjangFeet").value
+        );
+        let faktorKoreksiRaw = document.getElementById("faktorKoreksi").value;
+        const faktorKoreksi = faktorKoreksiRaw.includes(",")
+          ? parseFloat(faktorKoreksiRaw.replace(",", "."))
+          : parseFloat(faktorKoreksiRaw);
+
+        const bahanKonduktor = document.getElementById("bahanKonduktor").value;
+        const specText = document.getElementById("spesifikasiKonduktor").value;
+        let spesifikasiKonduktor;
+        if (bahanKonduktor === "CU" || bahanKonduktor === "AL") {
+          spesifikasiKonduktor = parseFloat(specText);
+        }
+        const hasilStatus = document.getElementById("hasilStatus");
+        const statusPengujian = document.getElementById("statusPengujian");
+        const unitColor = document.documentElement.classList.contains("dark")
+          ? "white"
+          : "black";
+
+        if (
+          !isNaN(pembacaanAlat) &&
+          !isNaN(panjang) &&
+          panjang > 0 &&
+          !isNaN(faktorKoreksi)
+        ) {
+          const hasil = (pembacaanAlat / panjang) * faktorKoreksi;
+          let warnaHasil = "black";
+          let warnaStatus = "black";
+          let statusText = "";
+          if (!isNaN(spesifikasiKonduktor)) {
+            if (hasil > spesifikasiKonduktor) {
+              warnaHasil = "red";
+              warnaStatus = "red";
+              statusText = "Hasil pengujian tidak memenuhi standar.";
+            } else {
+              warnaHasil = "green";
+              warnaStatus = "green";
+              statusText = "Hasil pengujian memenuhi standar.";
+            }
+          }
+          hasilStatus.innerHTML = `Hasil: <span style="color:${warnaHasil}">${hasil.toFixed(
+            5
+          )}</span> <span style="color:${unitColor}">Ω/km</span>`;
+          statusPengujian.innerHTML = `<span style="color:${warnaStatus}">${statusText}</span>`;
+        } else {
+          hasilStatus.textContent = "Hasil:";
+          statusPengujian.textContent = "";
+        }
+      }
+
+      const toggleSwitch = document.getElementById("toggleSwitch");
+      toggleSwitch.addEventListener("change", function () {
+        document.documentElement.classList.toggle("dark");
+        hitungHasil();
+      });
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.min.js"></script>
+  </body>
+</html>
